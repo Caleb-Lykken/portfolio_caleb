@@ -1,14 +1,14 @@
 import Navbar from './components/navbar';
 import Home from './pages/Home.js';
 import Portfolio from './pages/Portfolio';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import './App.css';
 
 function App() {
   return (
     <div>
+      <BrowserRouter>
       <Navbar />
-      <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="home" element={<Home />} />
@@ -16,7 +16,7 @@ function App() {
           {/* optional 404 */}
           <Route path="*" element={<h1 style={{ padding: 24 }}>Not Found</h1>} />
         </Routes>
-      </Router>
+      </BrowserRouter>
     </div>
   );
 }
