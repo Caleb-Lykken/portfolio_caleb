@@ -1,0 +1,208 @@
+/* Minimalistic design with thick Helvetica fonts */
+.gaydar-app {
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 300;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: #ffffff;
+  padding: 40px 20px;
+  text-align: center;
+  color: #000000;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #000000;
+}
+
+.app-header p {
+  margin: 20px 0 0 0;
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: #666666;
+  letter-spacing: 0.01em;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.welcome-screen, .analyzing-screen, .error-screen {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.welcome-content, .analyzing-content, .error-content {
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+  border-radius: 0px;
+  padding: 60px 40px;
+  box-shadow: none;
+}
+
+.welcome-icon, .analyzing-icon, .error-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.welcome-content h2, .analyzing-content h2, .error-content h2 {
+  color: #000000;
+  margin: 0 0 20px 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.welcome-content p, .analyzing-content p, .error-content p {
+  color: #666666;
+  margin: 0 0 40px 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  font-weight: 300;
+  letter-spacing: 0.005em;
+}
+
+.start-btn, .retry-btn {
+  background: #000000;
+  color: white;
+  border: 2px solid #000000;
+  padding: 20px 60px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 0px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+  margin: 0 0 20px 0;
+  text-transform: uppercase;
+}
+
+.start-btn:hover, .retry-btn:hover {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+}
+
+.close-btn {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 0px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.close-btn:hover {
+  background: #000000;
+  color: #ffffff;
+}
+
+.app-info {
+  margin-top: 50px;
+  padding-top: 30px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.app-info h3 {
+  color: #000000;
+  margin: 0 0 25px 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.app-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.app-info li {
+  color: #666666;
+  margin: 15px 0;
+  font-size: 1rem;
+  font-weight: 300;
+  padding-left: 0px;
+  position: relative;
+  letter-spacing: 0.003em;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #000000;
+  border-radius: 0px;
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+  .app-header h1 {
+    font-size: 2rem;
+  }
+  
+  .app-header p {
+    font-size: 1rem;
+  }
+  
+  .welcome-content, .analyzing-content, .error-content {
+    padding: 30px 20px;
+    margin: 10px;
+  }
+  
+  .welcome-icon, .analyzing-icon, .error-icon {
+    font-size: 3rem;
+  }
+  
+  .start-btn, .retry-btn {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Tablet and larger screens */
+@media (min-width: 768px) {
+  .app-header h1 {
+    font-size: 3rem;
+  }
+  
+  .welcome-content, .analyzing-content, .error-content {
+    padding: 50px 40px;
+  }
+  
+  .welcome-icon, .analyzing-icon, .error-icon {
+    font-size: 5rem;
+  }
+}
