@@ -81,8 +81,7 @@ function Gaydar() {
     <div className="gaydar-app">
       <div className="app-container">
         <header className="app-header">
-          <h1>🎭 Gaydar</h1>
-          <p>AI-Powered Facial Analysis</p>
+          <h1>Gaydar</h1>
         </header>
 
         <main className="app-main">
@@ -90,8 +89,8 @@ function Gaydar() {
             <div className="welcome-screen">
               <div className="welcome-content">
                 <div className="welcome-icon">📸</div>
-                <h2>Ready to Analyze?</h2>
-                <p>Take a photo to get started with facial analysis and sexual orientation prediction.</p>
+                <h2>Are you Gay?</h2>
+                <p>Let's find out. take a photo of your face and we'll tell you.</p>
                 
                 <button 
                   className="start-btn"
@@ -103,9 +102,9 @@ function Gaydar() {
                 <div className="app-info">
                   <h3>How it works:</h3>
                   <ul>
-                    <li>📷 Take a clear photo of your face</li>
-                    <li>🤖 AI analyzes facial features</li>
-                    <li>📊 Get detailed results instantly</li>
+                    <li>Take a photo of your face</li>
+                    <li>Wait for the analysis</li>
+                    <li>Get the results</li>
                   </ul>
                 </div>
               </div>
@@ -117,7 +116,7 @@ function Gaydar() {
               <div className="analyzing-content">
                 <div className="analyzing-icon">🔍</div>
                 <h2>Analyzing Photo...</h2>
-                <p>Processing facial features and running AI analysis</p>
+                <p>Processing facial features and gay tests...</p>
                 <div className="loading-spinner"></div>
               </div>
             </div>

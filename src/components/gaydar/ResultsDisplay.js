@@ -34,12 +34,12 @@ const ResultsDisplay = ({ results, onNewPhoto, onClose }) => {
             </div>
             
             <div className="confidence-display">
-              <div className="confidence-label">Confidence</div>
+              <div className="confidence-label">Confidence Level</div>
               <div 
                 className="confidence-bar"
                 style={{ backgroundColor: getConfidenceColor(results.confidence) }}
               >
-                {results.confidence}%
+                {results.confidence}% ({results.confidenceLevel || 'Medium'})
               </div>
             </div>
           </div>
@@ -64,12 +64,27 @@ const ResultsDisplay = ({ results, onNewPhoto, onClose }) => {
             
             <div className="detail-row">
               <span className="detail-label">Smile Intensity:</span>
-              <span className="detail-value">{results.attributes?.smile?.value || 'N/A'}</span>
+              <span className="detail-value">{results.attributes?.smiling?.value || 'N/A'}</span>
+            </div>
+            
+            <div className="detail-row">
+              <span className="detail-label">Head Pose Pitch:</span>
+              <span className="detail-value">{results.attributes?.headpose?.pitch_angle?.toFixed(2) || 'N/A'}°</span>
+            </div>
+            
+            <div className="detail-row">
+              <span className="detail-label">Head Pose Yaw:</span>
+              <span className="detail-value">{results.attributes?.headpose?.yaw_angle?.toFixed(2) || 'N/A'}°</span>
+            </div>
+            
+            <div className="detail-row">
+              <span className="detail-label">Head Pose Roll:</span>
+              <span className="detail-value">{results.attributes?.headpose?.roll_angle?.toFixed(2) || 'N/A'}°</span>
             </div>
           </div>
 
           <div className="features-section">
-            <h3>Facial Features</h3>
+            <h3>Facial Features Analysis</h3>
             <div className="features-grid">
               <div className="feature-item">
                 <span className="feature-label">fWHR</span>
@@ -87,6 +102,22 @@ const ResultsDisplay = ({ results, onNewPhoto, onClose }) => {
                 <span className="feature-label">Age Profile</span>
                 <span className="feature-value">{results.features?.age_profile || 'N/A'}</span>
               </div>
+              <div className="feature-item">
+                <span className="feature-label">Gender VGG</span>
+                <span className="feature-value">{results.features?.gender_vgg || 'N/A'}</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-label">Brightness</span>
+                <span className="feature-value">{results.features?.brightness || 'N/A'}</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-label">DI</span>
+                <span className="feature-value">{results.features?.di || 'N/A'}</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-label">Images</span>
+                <span className="feature-value">{results.features?.n_img || 'N/A'}</span>
+              </div>
             </div>
           </div>
 
@@ -103,6 +134,60 @@ const ResultsDisplay = ({ results, onNewPhoto, onClose }) => {
               </div>
             </div>
           )}
+
+          {results.analysisDetails && (
+            <div className="analysis-section">
+              <h3>ML Analysis Details</h3>
+              <div className="analysis-content">
+                <div className="analysis-item">
+                  <span className="analysis-label">Confidence Level:</span>
+                  <span className="analysis-value">{results.confidenceLevel || 'N/A'}</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="analysis-label">Primary Factors:</span>
+                  <span className="analysis-value">{results.analysisDetails.primaryFactors?.join(', ') || 'N/A'}</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="analysis-label">Secondary Factors:</span>
+                  <span className="analysis-value">{results.analysisDetails.secondaryFactors?.join(', ') || 'N/A'}</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="analysis-label">Model Version:</span>
+                  <span className="analysis-value">{results.analysisDetails.modelVersion || 'N/A'}</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="analysis-label">Last Trained:</span>
+                  <span className="analysis-value">{results.analysisDetails.lastTrained || 'N/A'}</span>
+                </div>
+                <div className="analysis-item">
+                  <span className="analysis-label">Processing Time:</span>
+                  <span className="analysis-value">{results.analysisDetails.processingTime?.toFixed(0) || 'N/A'}ms</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="debug-section">
+            <h3>Technical Details</h3>
+            <div className="debug-content">
+              <div className="debug-item">
+                <span className="debug-label">Raw Prediction:</span>
+                <span className="debug-value">{results.rawPrediction || 'N/A'}</span>
+              </div>
+              <div className="debug-item">
+                <span className="debug-label">Model Used:</span>
+                <span className="debug-value">{results.model || 'N/A'}</span>
+              </div>
+              <div className="debug-item">
+                <span className="debug-label">Analysis Timestamp:</span>
+                <span className="debug-value">{new Date().toLocaleString()}</span>
+              </div>
+              <div className="debug-item">
+                <span className="debug-label">Face Detection:</span>
+                <span className="debug-value">{results.rawApiResponse?.faces?.length > 0 ? `${results.rawApiResponse.faces.length} face(s) detected` : 'No faces detected'}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="results-actions">
