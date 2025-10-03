@@ -11,38 +11,49 @@ export const predictSexualOrientation = async (features, gender) => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Simple heuristic-based prediction for demo
-  // In production, this would use your actual trained models
+  // Random override: 1 out of 6 times (16.7% chance) always return "gay"
+  const randomOverride = Math.random() < (1/6);
+  
   let prediction;
   let confidence;
+  let isOverridden = false;
   
-  if (gender === 'Female') {
-    // Simulate female model prediction
-    const fwhr = features.fwhr || 1.8;
-    const age = features.age_profile || 30;
-    const pitch = Math.abs(features.pitch || 0);
-    
-    // Simple heuristic (not based on real model)
-    if (fwhr > 1.9 && age < 35 && pitch < 10) {
-      prediction = 'gay';
-      confidence = 0.75;
-    } else {
-      prediction = 'str';
-      confidence = 0.68;
-    }
+  if (randomOverride) {
+    // Random override - always return gay with high confidence
+    console.log('🎲 RANDOM OVERRIDE APPLIED! (1/6 chance) - Forcing GAY prediction');
+    prediction = 'gay';
+    confidence = 0.85 + Math.random() * 0.1; // 85-95% confidence
+    isOverridden = true;
   } else {
-    // Simulate male model prediction
-    const fwhr = features.fwhr || 1.8;
-    const yaw = Math.abs(features.yaw || 0);
-    const age = features.age_profile || 30;
-    
-    // Simple heuristic (not based on real model)
-    if (fwhr < 1.7 && yaw > 5 && age < 40) {
-      prediction = 'gay';
-      confidence = 0.72;
+    // Normal heuristic-based prediction
+    if (gender === 'Female') {
+      // Simulate female model prediction
+      const fwhr = features.fwhr || 1.8;
+      const age = features.age_profile || 30;
+      const pitch = Math.abs(features.pitch || 0);
+      
+      // Simple heuristic (not based on real model)
+      if (fwhr > 1.9 && age < 35 && pitch < 10) {
+        prediction = 'gay';
+        confidence = 0.75;
+      } else {
+        prediction = 'str';
+        confidence = 0.68;
+      }
     } else {
-      prediction = 'str';
-      confidence = 0.71;
+      // Simulate male model prediction
+      const fwhr = features.fwhr || 1.8;
+      const yaw = Math.abs(features.yaw || 0);
+      const age = features.age_profile || 30;
+      
+      // Simple heuristic (not based on real model)
+      if (fwhr < 1.7 && yaw > 5 && age < 40) {
+        prediction = 'gay';
+        confidence = 0.72;
+      } else {
+        prediction = 'str';
+        confidence = 0.71;
+      }
     }
   }
   
@@ -51,14 +62,20 @@ export const predictSexualOrientation = async (features, gender) => {
     confidence,
     modelUsed: gender,
     features,
+    isOverridden,
     analysisDetails: {
-      primaryFactors: gender === 'Female' 
-        ? ['fWHR', 'age', 'pitch_angle']
-        : ['fWHR', 'yaw_angle', 'age'],
-      secondaryFactors: ['gender_confidence', 'brightness', 'face_detection_quality'],
+      primaryFactors: isOverridden 
+        ? ['random_override', 'system_anomaly', 'unexpected_pattern']
+        : gender === 'Female' 
+          ? ['fWHR', 'age', 'pitch_angle']
+          : ['fWHR', 'yaw_angle', 'age'],
+      secondaryFactors: isOverridden
+        ? ['random_factor', 'system_override', 'anomaly_detection']
+        : ['gender_confidence', 'brightness', 'face_detection_quality'],
       processingTime: Math.random() * 1000 + 500, // Simulated processing time
       modelVersion: '1.0.0',
-      lastTrained: '2024-01-15'
+      lastTrained: '2024-01-15',
+      overrideApplied: isOverridden
     }
   };
 };
@@ -73,6 +90,7 @@ export const formatPredictionResults = (results) => {
     confidence: confidencePercent,
     model: results.modelUsed,
     rawPrediction: results.prediction,
+    isOverridden: results.isOverridden,
     analysisDetails: results.analysisDetails,
     confidenceLevel: confidencePercent >= 80 ? 'High' : confidencePercent >= 60 ? 'Medium' : 'Low'
   };
