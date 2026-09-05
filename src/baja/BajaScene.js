@@ -48,7 +48,7 @@ const GradeShader = {
     tDiffuse: { value: null },
     uTime: { value: 0 },
     uGrain: { value: 0.021 },
-    uExposure: { value: 1.45 },
+    uExposure: { value: 1.28 },
     uVignette: { value: 0.12 },
   },
   vertexShader: `
@@ -487,12 +487,12 @@ export default class BajaScene {
     const c = document.createElement('canvas');
     c.width = S; c.height = S;
     const x = c.getContext('2d');
-    x.fillStyle = '#596f4c';
+    x.fillStyle = '#5c6a52';
     x.fillRect(0, 0, S, S);
     for (let i = 0; i < 2600; i += 1) {
       const g = 58 + Math.random() * 42;
       const r = 60 + Math.random() * 34;
-      x.fillStyle = `rgba(${Math.round(r)},${Math.round(g + 20)},${Math.round(g - 18)},0.5)`;
+      x.fillStyle = `rgba(${Math.round(r)},${Math.round(g + 12)},${Math.round(g - 10)},0.4)`;
       x.fillRect(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 1 + Math.random() * 3);
     }
     const t = new THREE.CanvasTexture(c);
@@ -781,7 +781,7 @@ export default class BajaScene {
     this.sun.intensity = on ? 0.7 : 3.6;
     this.sun.color.setHex(on ? 0xffb478 : 0xffdcaf);
     this.hemi.intensity = on ? 0.3 : 1.15;
-    if (this.grade) this.grade.uniforms.uExposure.value = on ? 1.35 : 1.45;
+    if (this.grade) this.grade.uniforms.uExposure.value = on ? 1.10 : 1.28;
     // the peak and ridges are unlit, so they need tinting by hand at dusk
     this.mountain.material.color.setRGB(on ? 0.46 : 1, on ? 0.37 : 1, on ? 0.4 : 1);
     this.ridges.forEach((r) => {
@@ -802,7 +802,7 @@ export default class BajaScene {
       this.sun.intensity = 3.2;
       this.sun.color.setHex(0xffffff);
       this.hemi.intensity = 1.7;
-      if (this.grade) this.grade.uniforms.uExposure.value = 1.45;
+      if (this.grade) this.grade.uniforms.uExposure.value = 1.32;
       this.carX = 0;
       this.steer = 0;
     } else {
