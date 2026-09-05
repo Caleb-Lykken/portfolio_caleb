@@ -47,7 +47,7 @@ const GradeShader = {
   uniforms: {
     tDiffuse: { value: null },
     uTime: { value: 0 },
-    uGrain: { value: 0.013 },
+    uGrain: { value: 0.021 },
     uVignette: { value: 0.12 },
   },
   vertexShader: `
@@ -131,7 +131,7 @@ export default class BajaScene {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.55;
+    renderer.toneMappingExposure = 1.45;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer = renderer;
@@ -172,12 +172,12 @@ export default class BajaScene {
     } else {
       g.addColorStop(0.0, '#1d3149');
       g.addColorStop(0.3, '#5c7f9e');
-      g.addColorStop(0.47, '#b9c8d0');
-      g.addColorStop(0.497, '#dcd6c8');
-      g.addColorStop(0.525, '#8a8378');
-      g.addColorStop(0.62, '#5c5a52');
-      g.addColorStop(0.80, '#3d3c38');
-      g.addColorStop(1.0, '#2c2b28');
+      g.addColorStop(0.47, '#bccbd4');
+      g.addColorStop(0.497, '#ded8cb');
+      g.addColorStop(0.525, '#9c958a');
+      g.addColorStop(0.62, '#7e786e');
+      g.addColorStop(0.80, '#655f58');
+      g.addColorStop(1.0, '#514d47');
     }
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 1024, 512);
@@ -220,7 +220,7 @@ export default class BajaScene {
   }
 
   _initLighting() {
-    const sun = new THREE.DirectionalLight(0xffdcaf, 4.4);
+    const sun = new THREE.DirectionalLight(0xffe0b8, 3.6);
     sun.position.set(-7.4, 7.6, 5.0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -230,7 +230,7 @@ export default class BajaScene {
     this.scene.add(sun);
     this.sun = sun;
 
-    this.hemi = new THREE.HemisphereLight(0xb3ccdc, 0x44503c, 1.35);
+    this.hemi = new THREE.HemisphereLight(0xc2d8ea, 0x7d776c, 1.15);
     this.scene.add(this.hemi);
 
     // +X is the car's left: forward is +Z, so right = forward x up = -X
@@ -493,13 +493,13 @@ export default class BajaScene {
     const small = typeof window !== 'undefined' && window.innerWidth < 820;
     this.gtao = new GTAOPass(this.scene, this.camera, size.width, size.height);
     this.gtao.output = GTAOPass.OUTPUT.Default;
-    this.gtao.blendIntensity = 1.45;
+    this.gtao.blendIntensity = 0.95;
     this.gtao.updateGtaoMaterial({
-      radius: 0.55,          // metres: arch and under-body contact, not the whole car
-      distanceExponent: 1.0,
-      thickness: 0.9,
+      radius: 0.30,          // metres: crevices and arch contact only
+      distanceExponent: 1.4,
+      thickness: 0.5,
       distanceFallOff: 1,
-      scale: 1.35,
+      scale: 1.0,
       samples: small ? 8 : 16,
     });
     this.composer.addPass(this.gtao);
@@ -756,10 +756,10 @@ export default class BajaScene {
     this.scene.background = on ? this.skyDusk : this.skyDay;
     this.scene.environment = on ? this.envDusk : this.envDay;
     this.scene.fog.color.setHex(on ? 0x2b3742 : 0xa8b4b4);
-    this.sun.intensity = on ? 0.7 : 4.4;
+    this.sun.intensity = on ? 0.7 : 3.6;
     this.sun.color.setHex(on ? 0xffb478 : 0xffdcaf);
-    this.hemi.intensity = on ? 0.3 : 1.35;
-    this.renderer.toneMappingExposure = on ? 1.4 : 1.55;
+    this.hemi.intensity = on ? 0.3 : 1.15;
+    this.renderer.toneMappingExposure = on ? 1.35 : 1.45;
     // the peak and ridges are unlit, so they need tinting by hand at dusk
     this.mountain.material.color.setRGB(on ? 0.46 : 1, on ? 0.37 : 1, on ? 0.4 : 1);
     this.ridges.forEach((r) => {
