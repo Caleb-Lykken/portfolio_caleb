@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
 import { FINISH } from './paintData';
 
 /* ------------------------------------------------------------------ helpers */
@@ -293,7 +294,7 @@ export default class BajaScene {
 
     const verge = new THREE.Mesh(
       new THREE.PlaneGeometry(150, 320),
-      new THREE.MeshStandardMaterial({ color: 0x5d7350, roughness: 1 }),
+      new THREE.MeshStandardMaterial({ map: this._vergeTexture(), roughness: 1 }),
     );
     verge.rotation.x = -Math.PI / 2;
     verge.position.y = -0.035;
@@ -459,11 +460,50 @@ export default class BajaScene {
     this.forest.instanceMatrix.needsUpdate = true;
   }
 
+  _vergeTexture() {
+    const S = 256;
+    const c = document.createElement('canvas');
+    c.width = S; c.height = S;
+    const x = c.getContext('2d');
+    x.fillStyle = '#596f4c';
+    x.fillRect(0, 0, S, S);
+    for (let i = 0; i < 2600; i += 1) {
+      const g = 58 + Math.random() * 42;
+      const r = 60 + Math.random() * 34;
+      x.fillStyle = `rgba(${Math.round(r)},${Math.round(g + 20)},${Math.round(g - 18)},0.5)`;
+      x.fillRect(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 1 + Math.random() * 3);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = THREE.RepeatWrapping;
+    t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(40, 90);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }
+
   _initComposer() {
     const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
     const target = new THREE.WebGLRenderTarget(size.width, size.height, { type: THREE.HalfFloatType });
     this.composer = new EffectComposer(this.renderer, target);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+
+    // Ambient occlusion. Without contact darkening in the wheel arches, panel
+    // gaps and under the body, the truck reads as pasted onto the road.
+    const small = typeof window !== 'undefined' && window.innerWidth < 820;
+    this.gtao = new GTAOPass(this.scene, this.camera, size.width, size.height);
+    this.gtao.output = GTAOPass.OUTPUT.Default;
+    this.gtao.blendIntensity = 1.45;
+    this.gtao.updateGtaoMaterial({
+      radius: 0.55,          // metres: arch and under-body contact, not the whole car
+      distanceExponent: 1.0,
+      thickness: 0.9,
+      distanceFallOff: 1,
+      scale: 1.35,
+      samples: small ? 8 : 16,
+    });
+    this.composer.addPass(this.gtao);
+
     this.grade = new ShaderPass(GradeShader);
     this.grade.renderToScreen = true;
     this.composer.addPass(this.grade);
@@ -770,6 +810,7 @@ export default class BajaScene {
     if (!w || !h) return;
     this.renderer.setSize(w, h, false);
     this.composer.setSize(w, h);
+    if (this.gtao) this.gtao.setSize(w, h);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
