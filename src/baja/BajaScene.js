@@ -201,8 +201,28 @@ export default class BajaScene {
       g.addColorStop(0.80, '#655f58');
       g.addColorStop(1.0, '#514d47');
     }
+    const W = 1024;
+    const H = 512;
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 1024, 512);
+    ctx.fillRect(0, 0, W, H);
+    if (!dusk) {
+      // a pure gradient never reads as sky; soft banded cloud gives it depth
+      ctx.save();
+      for (let i = 0; i < 26; i += 1) {
+        ctx.globalAlpha = 0.05 + Math.random() * 0.10;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.ellipse(
+          Math.random() * W,
+          H * (0.10 + Math.random() * 0.30),
+          W * (0.10 + Math.random() * 0.26),
+          H * (0.012 + Math.random() * 0.030),
+          0, 0, Math.PI * 2,
+        );
+        ctx.fill();
+      }
+      ctx.restore();
+    }
     const tex = new THREE.CanvasTexture(canvas);
     tex.mapping = THREE.EquirectangularReflectionMapping;
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -243,10 +263,12 @@ export default class BajaScene {
 
   _initLighting() {
     const sun = new THREE.DirectionalLight(0xffe0b8, 3.6);
-    sun.position.set(-7.4, 7.6, 5.0);
+    sun.position.set(-9.6, 6.4, 4.4);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 26 });
+    sun.shadow.mapSize.set(4096, 4096);
+    // wide enough to take in the roadside trees, so their shadows fall across
+    // the tarmac. a forest road is striped with them; ours was evenly lit.
+    Object.assign(sun.shadow.camera, { left: -26, right: 26, top: 26, bottom: -26, near: 1, far: 70 });
     sun.shadow.bias = -0.0004;
     sun.shadow.normalBias = 0.03;
     this.scene.add(sun);
@@ -288,6 +310,18 @@ export default class BajaScene {
       img.data[i + 2] += n;
     }
     ctx.putImageData(img, 0, 0);
+    // wheel tracks: two polished bands per lane, where tyres actually run
+    ctx.globalAlpha = 0.5;
+    [0.295, 0.412, 0.588, 0.705].forEach((u) => {
+      const g = ctx.createLinearGradient(S * u - S * 0.045, 0, S * u + S * 0.045, 0);
+      g.addColorStop(0, 'rgba(40,42,45,0)');
+      g.addColorStop(0.5, 'rgba(40,42,45,0.85)');
+      g.addColorStop(1, 'rgba(40,42,45,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(S * u - S * 0.045, 0, S * 0.09, S);
+    });
+    ctx.globalAlpha = 1;
+
     ctx.fillStyle = '#e6e3d8';
     ctx.fillRect(S * 0.208 - 3, 0, 6, S);
     ctx.fillRect(S * 0.792 - 3, 0, 6, S);
@@ -314,14 +348,44 @@ export default class BajaScene {
     this.scene.add(road);
     this.scenery.push(road);
 
+    // 48x96 rather than a single quad so the ground can actually undulate
+    const vergeGeo = new THREE.PlaneGeometry(150, 320, 48, 96);
+    {
+      const vp = vergeGeo.attributes.position;
+      for (let i = 0; i < vp.count; i += 1) {
+        const x = vp.getX(i);
+        const y = vp.getY(i);
+        // flat where it meets the tarmac, rolling further out
+        const skirt = Math.min(1, Math.max(0, (Math.abs(x) - 8) / 14));
+        vp.setZ(i, (fbm(x * 0.045, y * 0.045, 3) - 0.5) * 1.7 * skirt);
+      }
+      vp.needsUpdate = true;
+      vergeGeo.computeVertexNormals();
+    }
     const verge = new THREE.Mesh(
-      new THREE.PlaneGeometry(150, 320),
+      vergeGeo,
       new THREE.MeshStandardMaterial({ map: this._vergeTexture(), roughness: 1 }),
     );
     verge.rotation.x = -Math.PI / 2;
     verge.position.y = -0.035;
+    verge.receiveShadow = true;
     this.scene.add(verge);
     this.scenery.push(verge);
+
+    // gravel shoulder: tarmac met grass on a dead straight line, which is the
+    // sort of edge that only exists in CG
+    const gravel = this._gravelTexture();
+    [-1, 1].forEach((side) => {
+      const strip = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.6, 320, 1, 64),
+        new THREE.MeshStandardMaterial({ map: gravel, roughness: 1 }),
+      );
+      strip.rotation.x = -Math.PI / 2;
+      strip.position.set(side * 6.7, -0.012, 0);
+      strip.receiveShadow = true;
+      this.scene.add(strip);
+      this.scenery.push(strip);
+    });
 
     const postGeo = new THREE.CylinderGeometry(0.05, 0.05, 1.15, 7);
     const postMat = new THREE.MeshStandardMaterial({ color: 0xd6d2c4, roughness: 0.8 });
@@ -393,7 +457,21 @@ export default class BajaScene {
     geo.setAttribute('color', new THREE.Float32BufferAttribute(colours, 3));
     geo.setIndex(indices);
     geo.computeVertexNormals();
-    // at 4km the peak is scattering-dominated, so unlit reads truer than shaded
+    // Unlit keeps the haze reading right at 4km, but with no shading at all the
+    // peak was a paper cutout. Bake the sun direction into the vertex colours:
+    // form, without the peak reacting to scene lights it is far too distant for.
+    {
+      const nrm = geo.attributes.normal;
+      const col = geo.attributes.color;
+      const L = new THREE.Vector3(-7.4, 7.6, 5.0).normalize();
+      const n = new THREE.Vector3();
+      for (let i = 0; i < col.count; i += 1) {
+        n.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
+        const shade = 0.70 + 0.30 * Math.max(0, n.dot(L));
+        col.setXYZ(i, col.getX(i) * shade, col.getY(i) * shade, col.getZ(i) * shade);
+      }
+      col.needsUpdate = true;
+    }
     this.mountain = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, fog: false }));
     this.mountain.position.set(-1900, -50, -4200);
     this.scene.add(this.mountain);
@@ -442,7 +520,7 @@ export default class BajaScene {
     geo.computeVertexNormals();
 
     const material = new THREE.MeshStandardMaterial({
-      color: 0x3d6b48, roughness: 1, flatShading: true,
+      color: 0xffffff, roughness: 1, flatShading: true,
     });
     // foliage shouldn't mirror the sky the way car paint does
     material.envMapIntensity = 0.32;
@@ -451,35 +529,104 @@ export default class BajaScene {
     this.forest = new THREE.InstancedMesh(geo, material, COUNT);
     this.forest.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.forest.frustumCulled = false;
-    this.trees = [];
-    for (let i = 0; i < COUNT; i += 1) {
-      this.trees.push({
-        x: (i % 2 ? 1 : -1) * (16 + Math.pow(Math.random(), 0.5) * 78),
+    this.forest.castShadow = true;
+    this.forest.receiveShadow = true;
+
+    const trunkGeo = new THREE.CylinderGeometry(1, 1.35, 1, 6);
+    this.trunks = new THREE.InstancedMesh(
+      trunkGeo,
+      new THREE.MeshStandardMaterial({ color: 0x4a3b30, roughness: 1 }),
+      COUNT,
+    );
+    this.trunks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.trunks.frustumCulled = false;
+    this.trunks.castShadow = true;
+
+    // stands cluster; evenly scattered trees read as a planted row
+    const clusters = [];
+    for (let i = 0; i < 32; i += 1) {
+      clusters.push({
+        side: i % 2 ? 1 : -1,
+        x: 22 + Math.pow(Math.random(), 0.6) * 62,
         z: -300 + Math.random() * 600,
-        h: 13 + Math.random() * 17,
-        w: 0.55 + Math.random() * 0.35,
-        r: Math.random() * Math.PI,
       });
     }
+
+    const tint = new THREE.Color();
+    this.trees = [];
+    for (let i = 0; i < COUNT; i += 1) {
+      const c = clusters[(Math.random() * clusters.length) | 0];
+      const h = 13 + Math.random() * 17;
+      this.trees.push({
+        x: c.side * Math.max(16, c.x + (Math.random() - 0.5) * 26),
+        z: c.z + (Math.random() - 0.5) * 48,
+        h,
+        w: 0.55 + Math.random() * 0.35,
+        r: Math.random() * Math.PI,
+        lean: (Math.random() - 0.5) * 0.06,
+        leanAxis: Math.random() * Math.PI,
+      });
+      // firs are not one green; vary hue and value so the stand has depth
+      tint.setHSL(0.30 + Math.random() * 0.055, 0.30 + Math.random() * 0.16, 0.15 + Math.random() * 0.10);
+      this.forest.setColorAt(i, tint);
+    }
+    if (this.forest.instanceColor) this.forest.instanceColor.needsUpdate = true;
+
     this._syncForest();
     this.scene.add(this.forest);
+    this.scene.add(this.trunks);
     this.scenery.push(this.forest);
+    this.scenery.push(this.trunks);
   }
 
   _syncForest() {
     const m = new THREE.Matrix4();
     const q = new THREE.Quaternion();
+    const tilt = new THREE.Quaternion();
     const v = new THREE.Vector3();
-    const s = new THREE.Vector3();
-    const axis = new THREE.Vector3(0, 1, 0);
+    const sc = new THREE.Vector3();
+    const up = new THREE.Vector3(0, 1, 0);
+    const axis = new THREE.Vector3();
     this.trees.forEach((t, i) => {
-      q.setFromAxisAngle(axis, t.r);
-      v.set(t.x, t.h * 0.5 - 0.2, t.z);
-      s.set(t.w * t.h * 0.115, t.h, t.w * t.h * 0.115);
-      m.compose(v, q, s);
+      const trunkH = t.h * 0.13;
+      axis.set(Math.cos(t.leanAxis), 0, Math.sin(t.leanAxis));
+      q.setFromAxisAngle(up, t.r);
+      tilt.setFromAxisAngle(axis, t.lean);
+      q.premultiply(tilt);
+
+      v.set(t.x, trunkH + t.h * 0.5 - 0.2, t.z);
+      sc.set(t.w * t.h * 0.115, t.h, t.w * t.h * 0.115);
+      m.compose(v, q, sc);
       this.forest.setMatrixAt(i, m);
+
+      v.set(t.x, trunkH * 0.55, t.z);
+      sc.set(t.h * 0.016, trunkH * 1.3, t.h * 0.016);
+      m.compose(v, q, sc);
+      this.trunks.setMatrixAt(i, m);
     });
     this.forest.instanceMatrix.needsUpdate = true;
+    this.trunks.instanceMatrix.needsUpdate = true;
+  }
+
+  _gravelTexture() {
+    const S = 128;
+    const c = document.createElement('canvas');
+    c.width = S; c.height = S;
+    const x = c.getContext('2d');
+    x.fillStyle = '#6a655c';
+    x.fillRect(0, 0, S, S);
+    for (let i = 0; i < 2200; i += 1) {
+      const v = 70 + Math.random() * 70;
+      x.fillStyle = `rgba(${Math.round(v)},${Math.round(v * 0.96)},${Math.round(v * 0.88)},0.65)`;
+      x.fillRect(Math.random() * S, Math.random() * S, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = THREE.RepeatWrapping;
+    t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(2, 150);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
   }
 
   _vergeTexture() {
