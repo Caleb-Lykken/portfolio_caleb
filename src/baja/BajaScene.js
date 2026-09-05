@@ -8,8 +8,8 @@ import { FINISH } from './paintData';
 
 /* ------------------------------------------------------------------ helpers */
 
-const HOME_CAMERA = new THREE.Vector3(4.15, 1.95, 5.05);
-const HOME_TARGET = new THREE.Vector3(0, 0.95, -1.2);
+const HOME_CAMERA = new THREE.Vector3(3.21, 2.20, 7.93);
+const HOME_TARGET = new THREE.Vector3(-1.98, 0.95, 0.12);
 
 /** hash-based value noise, enough for a mountain profile and a road surface */
 function hash2(x, y) {
@@ -163,18 +163,20 @@ export default class BajaScene {
       g.addColorStop(0.0, '#0b1626');
       g.addColorStop(0.3, '#1f3550');
       g.addColorStop(0.44, '#4d5470');
-      g.addColorStop(0.494, '#c2764a');
-      g.addColorStop(0.505, '#241f1e');
-      g.addColorStop(0.72, '#141315');
-      g.addColorStop(1.0, '#0b0b0c');
+      g.addColorStop(0.497, '#b06f48');
+      g.addColorStop(0.525, '#4a3f38');
+      g.addColorStop(0.63, '#2a2523');
+      g.addColorStop(0.80, '#17161a');
+      g.addColorStop(1.0, '#101015');
     } else {
       g.addColorStop(0.0, '#1d3149');
       g.addColorStop(0.3, '#5c7f9e');
-      g.addColorStop(0.44, '#a9bcc6');
-      g.addColorStop(0.494, '#e0d5c6');
-      g.addColorStop(0.505, '#43413c');
-      g.addColorStop(0.72, '#2b2b29');
-      g.addColorStop(1.0, '#191918');
+      g.addColorStop(0.47, '#b9c8d0');
+      g.addColorStop(0.497, '#dcd6c8');
+      g.addColorStop(0.525, '#8a8378');
+      g.addColorStop(0.62, '#5c5a52');
+      g.addColorStop(0.80, '#3d3c38');
+      g.addColorStop(1.0, '#2c2b28');
     }
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 1024, 512);
@@ -192,8 +194,9 @@ export default class BajaScene {
     const g = ctx.createLinearGradient(0, 0, 0, 256);
     g.addColorStop(0.0, '#3a3f45');
     g.addColorStop(0.46, '#cfd4d8');
-    g.addColorStop(0.54, '#8d949a');
-    g.addColorStop(1.0, '#2c2f33');
+    g.addColorStop(0.52, '#a9b0b6');
+    g.addColorStop(0.62, '#7d848a');
+    g.addColorStop(1.0, '#3a3e42');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 512, 256);
     const tex = new THREE.CanvasTexture(canvas);
@@ -220,8 +223,9 @@ export default class BajaScene {
     sun.position.set(-7.4, 7.6, 5.0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(sun.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 30 });
-    sun.shadow.bias = -0.0012;
+    Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 26 });
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.03;
     this.scene.add(sun);
     this.sun = sun;
 
@@ -802,7 +806,7 @@ export default class BajaScene {
         this.car.rotation.z = this.steer * 0.022;
       }
       this.frontWheels.forEach((w) => { w.rotation.y = this.steer * 0.46; });
-      const tx = this.carX * 0.72;
+      const tx = HOME_TARGET.x + this.carX * 0.72;
       this.camera.position.x += tx - this.controls.target.x;
       this.controls.target.x = tx;
     }

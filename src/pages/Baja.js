@@ -34,6 +34,7 @@ export default function Baja() {
   const [lights, setLights] = useState(INITIAL_LIGHTS);
   const [driving, setDriving] = useState(true);
   const [paintMode, setPaintMode] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const [draft, setDraft] = useState(BLANK_DRAFT);
   const [customs, setCustoms] = useState(loadCustomPaints);
   const [notice, setNotice] = useState('');
@@ -129,7 +130,32 @@ export default function Baja() {
   }, [status, lights.dusk]);
 
   useEffect(() => {
-    if (status === 'ready') sceneRef.current?.setStudio(paintMode);
+    if (status !== 'ready') return undefined;
+    // the swap is synchronous but heavy (env map, ~500 tree instances), so let
+    // the overlay paint first, then hand the renderer a frame to settle
+    setSwitching(true);
+    let applied = false;
+    let settled = false;
+    const apply = () => {
+      if (applied) return;
+      applied = true;
+      sceneRef.current?.setStudio(paintMode);
+    };
+    const settle = () => {
+      if (settled) return;
+      settled = true;
+      apply();
+      setSwitching(false);
+    };
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => { apply(); raf2 = requestAnimationFrame(settle); });
+    // rAF is paused in a background tab, so never leave the overlay stranded
+    const fallback = setTimeout(settle, 450);
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      clearTimeout(fallback);
+    };
   }, [status, paintMode]);
 
   useEffect(() => {
@@ -244,10 +270,14 @@ export default function Baja() {
       >
         <canvas ref={canvasRef} className="baja__canvas" />
 
-        {status !== 'ready' && (
+        {(status !== 'ready' || switching) && (
           <div className="baja__loading">
             <span className="baja__loading-bar"><i /></span>
-            <p>{status === 'error' ? 'Model failed to load' : 'Loading model'}</p>
+            <p>
+              {status === 'error' ? 'Model failed to load'
+                : status !== 'ready' ? 'Loading model'
+                : paintMode ? 'Opening the paint shop' : 'Back to the road'}
+            </p>
           </div>
         )}
 
