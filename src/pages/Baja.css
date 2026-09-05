@@ -1,0 +1,428 @@
+/* Subaru Baja configurator — "Showroom": full-bleed viewer, frosted controls,
+   large display type. Kept dark so the paint reads honestly; the site's Inter
+   and film-grain motif carry through. */
+
+.baja {
+  --ink: #f2f3f2;
+  --ink-dim: #a9b0b3;
+  --ink-faint: #6f7679;
+  --glass: rgba(18, 20, 22, 0.62);
+  --glass-line: rgba(226, 236, 236, 0.14);
+  --accent: #d9a227;
+  --ground: #0d0f10;
+
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 380px);
+  background: var(--ground);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  z-index: 10;
+}
+
+/* ------------------------------------------------------------------ stage */
+
+.baja__stage {
+  position: relative;
+  overflow: hidden;
+  outline: none;
+}
+
+.baja__stage:focus-visible::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+}
+
+.baja__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.baja__loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  background: var(--ground);
+}
+
+.baja__loading p {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.baja__loading-bar {
+  display: block;
+  width: 180px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.baja__loading-bar i {
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: var(--accent);
+  animation: baja-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes baja-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(390%); }
+}
+
+/* ----------------------------------------------------------------- chrome */
+
+.baja__chrome {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.baja__chrome--top { top: 22px; justify-content: space-between; }
+.baja__chrome--bottom { bottom: 22px; }
+
+.baja__back {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  text-decoration: none;
+  padding: 7px 12px;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(10px);
+  transition: color 0.18s;
+}
+
+.baja__back:hover { color: var(--ink); }
+
+.baja__lights { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.baja__chip {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+  color: var(--ink-dim);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(10px);
+  transition: color 0.18s, background 0.18s, border-color 0.18s;
+}
+
+.baja__chip:hover:not(:disabled) { color: var(--ink); border-color: rgba(226, 236, 236, 0.3); }
+.baja__chip[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #14161a; }
+.baja__chip:disabled { opacity: 0.32; cursor: not-allowed; }
+.baja__chip--accent { color: var(--accent); border-color: rgba(217, 162, 39, 0.45); }
+
+.baja__hint {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 7px 4px;
+}
+
+.baja__hint b { color: var(--accent); font-weight: 700; }
+
+/* --------------------------------------------------------------- headline */
+
+.baja__headline {
+  position: absolute;
+  left: 26px;
+  bottom: 78px;
+  max-width: 46%;
+  pointer-events: none;
+}
+
+.baja__eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.baja__headline h1 {
+  margin: 0;
+  font-size: clamp(38px, 5.2vw, 76px);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.55);
+}
+
+.baja__sub {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 15px;
+  color: var(--ink-dim);
+}
+
+.baja__code {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  border: 1px solid rgba(217, 162, 39, 0.4);
+  padding: 3px 8px;
+}
+
+.baja__note {
+  margin: 14px 0 0;
+  max-width: 46ch;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+/* ------------------------------------------------------------------ panel */
+
+.baja__panel {
+  overflow-y: auto;
+  padding: 24px 22px 40px;
+  background: #121415;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.baja__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.baja__panel-head--tight { margin-top: 30px; }
+
+.baja__panel-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.baja__years { display: flex; gap: 4px; }
+
+.baja__year {
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--ink-faint);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.baja__year:hover { color: var(--ink); }
+.baja__year[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #14161a; }
+
+.baja__meta {
+  padding: 14px 0 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 18px;
+}
+
+.baja__meta dl { margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.baja__meta dl > div { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: baseline; }
+
+.baja__meta dt {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.baja__meta dd { margin: 0; font-size: 13.5px; color: var(--ink); }
+.baja__meta dd span { color: var(--ink-faint); font-variant-numeric: tabular-nums; margin-left: 6px; }
+
+.baja__trim { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* --------------------------------------------------------------- swatches */
+
+.baja__swatches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.baja__swatches li { position: relative; }
+
+.baja__swatch {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+  overflow: hidden;
+  background: #191c1e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.16s, transform 0.16s;
+}
+
+.baja__swatch:hover { border-color: rgba(255, 255, 255, 0.26); transform: translateY(-2px); }
+.baja__swatch[aria-current='true'] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.baja__swatch-colour { display: flex; height: 44px; }
+.baja__swatch-colour i { display: block; flex: 1; }
+.baja__swatch-colour i:first-child { flex: 1.7; }
+
+.baja__swatch-label { padding: 8px 9px 10px; display: flex; flex-direction: column; gap: 3px; }
+.baja__swatch-label strong { font-size: 12px; font-weight: 600; line-height: 1.25; }
+.baja__swatch-label em {
+  font-style: normal;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.baja__delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--ink-dim);
+  background: rgba(10, 12, 13, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.baja__delete:hover { color: #ff7a6a; }
+
+/* ------------------------------------------------------------ paint shop */
+
+.baja__paint { display: flex; flex-direction: column; gap: 16px; }
+
+.baja__field { display: flex; flex-direction: column; gap: 6px; }
+
+.baja__field > span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.baja__field select,
+.baja__field input[type='text'] {
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: #191c1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.baja__field select:focus,
+.baja__field input:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+.baja__colour-row { display: flex; gap: 8px; align-items: stretch; }
+
+.baja__colour-row input[type='color'] {
+  width: 56px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  cursor: pointer;
+  block-size: 40px;
+}
+
+.baja__hex { flex: 1; font-variant-numeric: tabular-nums; text-transform: lowercase; }
+
+.baja__done {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 13px;
+  cursor: pointer;
+  color: #14161a;
+  background: var(--accent);
+  border: none;
+}
+
+.baja__done:hover { filter: brightness(1.08); }
+
+/* ----------------------------------------------------------------- notes */
+
+.baja__muted { font-size: 12.5px; line-height: 1.55; color: var(--ink-faint); margin: 0; }
+.baja__empty { padding: 10px 0; }
+
+.baja__notice {
+  margin: 0;
+  font-size: 12px;
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
+
+.baja__fineprint {
+  margin: 26px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+
+/* ---------------------------------------------------------------- narrow */
+
+@media (max-width: 900px) {
+  .baja {
+    position: static;
+    grid-template-columns: 1fr;
+    min-height: 100vh;
+  }
+
+  .baja__stage { height: 62vh; min-height: 340px; }
+  .baja__headline { max-width: 78%; bottom: 74px; }
+  .baja__panel { border-left: none; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .baja__swatch { transition: none; }
+  .baja__loading-bar i { animation: none; width: 100%; }
+}

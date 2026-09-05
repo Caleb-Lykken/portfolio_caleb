@@ -5,7 +5,12 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 import Gaydar from './pages/Gaydar';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from 'react';
 import './App.css';
+
+// three.js is ~165KB gzipped, so the Baja viewer is split out and only
+// fetched when someone actually opens /baja
+const Baja = lazy(() => import('./pages/Baja'));
 
 function App() {
   return (
@@ -13,6 +18,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/gaydar" element={<Gaydar />} />
+          <Route path="/baja" element={<Suspense fallback={null}><Baja /></Suspense>} />
           <Route path="*" element={
             <div>
               <Navbar />
