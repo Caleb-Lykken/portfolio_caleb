@@ -48,6 +48,7 @@ const GradeShader = {
     tDiffuse: { value: null },
     uTime: { value: 0 },
     uGrain: { value: 0.021 },
+    uExposure: { value: 1.45 },
     uVignette: { value: 0.12 },
   },
   vertexShader: `
@@ -61,11 +62,32 @@ const GradeShader = {
     uniform float uTime;
     uniform float uGrain;
     uniform float uVignette;
+    uniform float uExposure;
     varying vec2 vUv;
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+    // Khronos PBR Neutral. ACES is a film-emulation curve: it desaturates and
+    // skews saturated hues, so paint never matches its swatch. This one is
+    // specified for colour-accurate product viewing, which is the whole job here.
+    vec3 pbrNeutral(vec3 color) {
+      const float startCompression = 0.8 - 0.04;
+      const float desaturation = 0.15;
+      float x = min(color.r, min(color.g, color.b));
+      float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+      color -= offset;
+      float peak = max(color.r, max(color.g, color.b));
+      if (peak < startCompression) return color;
+      float d = 1.0 - startCompression;
+      float newPeak = 1.0 - d * d / (peak + d - startCompression);
+      color *= newPeak / peak;
+      float g = 1.0 - 1.0 / (desaturation * (peak - newPeak) + 1.0);
+      return mix(color, vec3(newPeak), g);
+    }
+
     void main() {
       vec4 c = texture2D(tDiffuse, vUv);
-      c.rgb *= vec3(1.016, 1.002, 0.988);
+      c.rgb = pbrNeutral(c.rgb * uExposure);
+      c.rgb *= vec3(1.008, 1.001, 0.994);
       float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
       float g = hash(vUv * vec2(1927.0, 1081.0) + fract(uTime)) - 0.5;
       c.rgb += g * uGrain * (0.30 + 0.70 * (1.0 - abs(l * 2.0 - 1.0)));
@@ -130,8 +152,8 @@ export default class BajaScene {
     const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.45;
+    // tone mapping happens in the grade pass instead, see pbrNeutral()
+    renderer.toneMapping = THREE.NoToneMapping;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer = renderer;
@@ -759,7 +781,7 @@ export default class BajaScene {
     this.sun.intensity = on ? 0.7 : 3.6;
     this.sun.color.setHex(on ? 0xffb478 : 0xffdcaf);
     this.hemi.intensity = on ? 0.3 : 1.15;
-    this.renderer.toneMappingExposure = on ? 1.35 : 1.45;
+    if (this.grade) this.grade.uniforms.uExposure.value = on ? 1.35 : 1.45;
     // the peak and ridges are unlit, so they need tinting by hand at dusk
     this.mountain.material.color.setRGB(on ? 0.46 : 1, on ? 0.37 : 1, on ? 0.4 : 1);
     this.ridges.forEach((r) => {
@@ -780,7 +802,7 @@ export default class BajaScene {
       this.sun.intensity = 3.2;
       this.sun.color.setHex(0xffffff);
       this.hemi.intensity = 1.7;
-      this.renderer.toneMappingExposure = 1.45;
+      if (this.grade) this.grade.uniforms.uExposure.value = 1.45;
       this.carX = 0;
       this.steer = 0;
     } else {
